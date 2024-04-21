@@ -1,0 +1,12 @@
+.taskmaster-pro-tasks-list .task {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 10px;
+}
+
+@media (max-width: 600px) {
+    .taskmaster-pro-tasks-list .task {
+        padding: 10px;
+        font-size: 14px;
+    }
+}
