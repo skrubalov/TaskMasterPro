@@ -10,3 +10,25 @@
         font-size: 14px;
     }
 }
+.task-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.task-table th, .task-table td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.task-table th {
+    background-color: #f2f2f2;
+}
+
+.task-table tbody tr:hover {
+    background-color: #6f8274;
+}
+
+.completed-task {
+    background-color: lightgreen;
+}
