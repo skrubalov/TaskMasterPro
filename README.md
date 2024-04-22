@@ -56,6 +56,7 @@ TaskMaster Pro is a powerful WordPress plugin designed to help users manage thei
 ## Features
 
 - **CRUD Functionality:** Create, Read, Update, and Delete tasks within the WordPress admin.
-- **Shortcode Support:** Use a shortcode to display tasks on the front-end.
-- **Gutenberg Block:** A custom block to easily integrate tasks display into posts and pages.
+- **Gutenberg Block:** A custom block to easily integrate tasks display into posts and pages. The user can select any list that they own and is set to public.
+- **Added differentiation between administrator ( can view and edit all the lists and tasks) and regular user ( different than subscriber).
+- **Each user can add their own lists/projects and tasks to those lists, also the tasks can be moved between lists/projects by editing them.
 #   T a s k M a s t e r P r o 
