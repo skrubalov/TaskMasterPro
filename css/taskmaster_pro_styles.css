@@ -80,4 +80,19 @@
 .task-form-container button[type="submit"]:hover {
     background-color: #005e80;
 }
+.task-toggle {
+    cursor: pointer; /* Indicates the element is clickable */
+    color: #333; /* Dark grey color for text */
+    background-color: #f9f9f9; /* Light grey background */
+    padding: 10px 15px; /* Padding around the text */
+    margin-bottom: 5px; /* Space below the header */
+    border-radius: 5px; /* Rounded corners */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Subtle shadow for 3D effect */
+    transition: background-color 0.3s, box-shadow 0.3s; /* Smooth transition for hover effects */
+}
+
+.task-toggle:hover {
+    background-color: #e9ecef; /* Slightly darker background on hover */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15); /* Larger shadow on hover for lifting effect */
+}
 

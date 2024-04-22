@@ -60,7 +60,8 @@ $current_list = '';
 		$current_list = $task->list_name;
 		?>
         <div class="task-list">
-            <h3 onclick="toggleVisibility('list-<?= esc_attr($task->list_id); ?>')"><?= esc_html($task->list_name); ?></h3>
+            <h3 class="task-toggle" onclick="toggleVisibility('list-<?= esc_attr($task->list_id); ?>')"><?= esc_html
+                ($task->list_name); ?></h3>
             <table id="list-<?= esc_attr($task->list_id); ?>" style="display:none;" class="task-table">
                 <thead>
                 <tr>

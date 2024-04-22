@@ -1,6 +1,12 @@
-function toggleVisibility(listId) {
-    var list = document.getElementById(listId);
-    list.style.display = list.style.display === 'none' ? 'block' : 'none';
+function toggleVisibility(id) {
+    var element = document.getElementById(id);
+    var isVisible = element.style.display !== 'none';
+    element.style.display = isVisible ? 'none' : 'table';
+    // Update aria-expanded for accessibility
+    var trigger = document.querySelector(`h3[onclick*="${id}"]`);
+    if (trigger) {
+        trigger.setAttribute('aria-expanded', !isVisible);
+    }
 }
 
 function markTaskCompleted(taskId, completed, obj) {
