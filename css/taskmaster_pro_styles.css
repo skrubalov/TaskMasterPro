@@ -32,3 +32,16 @@
 .completed-task {
     background-color: lightgreen;
 }
+
+.delete-list-button {
+    background: none;
+    border: none;
+    color: #0073aa; /* Adjust the color to match your theme */
+    cursor: pointer;
+    text-decoration: underline;
+    padding: 0;
+}
+
+.delete-list-button:hover {
+    color: #005e80; /* Adjust the hover color if needed */
+}

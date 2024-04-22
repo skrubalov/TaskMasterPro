@@ -448,3 +448,36 @@ function fetch_lists() {
 
 	return $wpdb->get_results($query);
 }
+
+
+function delete_list_and_associated_tasks($list_id) {
+	global $wpdb;
+    var_dump(123);
+	// Delete tasks associated with the list
+	$tasks_table = $wpdb->prefix . 'tasks';
+	$wpdb->delete($tasks_table, array('list_id' => $list_id));
+
+	// Delete the list itself
+	$lists_table = $wpdb->prefix . 'task_lists';
+	$wpdb->delete($lists_table, array('list_id' => $list_id));
+}
+
+function handle_list_deletion($list_id) {
+	global $wpdb;
+
+	// Check if the current user owns the list
+	$list_owner = $wpdb->get_var(
+		$wpdb->prepare("SELECT user_id FROM {$wpdb->prefix}task_lists WHERE list_id = %d", $list_id)
+	);
+
+	$current_user_id = get_current_user_id();
+
+	if ($list_owner == $current_user_id || current_user_can('manage_options')) {
+		// User owns the list or is admin, proceed with deletion
+		delete_list_and_associated_tasks($list_id);
+		return true; // Deletion successful
+	} else {
+		// User does not have permission to delete the list
+		return false; // Deletion failed
+	}
+}

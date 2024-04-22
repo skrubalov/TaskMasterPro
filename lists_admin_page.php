@@ -1,3 +1,16 @@
+<?php
+if (isset($_POST['delete_list'])) {
+	$list_id = intval($_POST['list_id']);
+	var_dump(12344);
+	if (handle_list_deletion($list_id)) {
+		// List deleted successfully
+		echo '<div class="notice notice-success"><p>List deleted successfully.</p></div>';
+	} else {
+		// Failed to delete list
+		echo '<div class="notice notice-error"><p>Failed to delete list. You may not have permission to delete this list.</p></div>';
+	}
+}
+?>
 <div class="wrap">
 	<h1>Manage Task Lists</h1>
 	<form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
@@ -45,7 +58,8 @@
 			<tr>
 				<th>List Name</th>
 				<th>Visibility</th>
-				<th>Actions</th>
+				<th>Edit</th>
+				<th>Delete</th>
 			</tr>
 			</thead>
 			<tbody>
@@ -55,11 +69,19 @@
 					<td><?= esc_html($list->visibility); ?></td>
 					<td>
 						<a href="<?php echo admin_url('admin.php?page=taskmaster_pro_lists&edit=' . $list->list_id); ?>" class="button">Edit</a>
+
 					</td>
+                    <td><form method="post" action="" >
+                            <input type="hidden" name="list_id" value="<?= esc_html($list->list_id);?>"
+                                   style="display:none;">
+                            <button type="submit"  name="delete_list" class="delete-list-button">Delete</button></form>
+
+                    </td>
 				</tr>
 			<?php endforeach; ?>
 			</tbody>
 		</table>
+
 	<?php else: ?>
 		<p>No lists found. Create your first task list.</p>
 	<?php endif; ?>
