@@ -121,21 +121,6 @@ function taskmaster_pro_enqueue_styles() {
 }
 add_action('admin_enqueue_scripts', 'taskmaster_pro_enqueue_styles');
 
-
-function taskmaster_pro_register_block() {
-	wp_register_script(
-		'taskmaster-pro-block',
-		plugins_url('/blocks/block.js', __FILE__),
-		array('wp-blocks', 'wp-element')
-	);
-
-	register_block_type('taskmaster-pro/tasks-block', array(
-		'editor_script' => 'taskmaster-pro-block',
-		'render_callback' => 'taskmaster_pro_display_tasks_shortcode', // Use the same render callback as the shortcode
-	));
-}
-add_action('init', 'taskmaster_pro_register_block');
-
 function create_task_list($user_id, $list_name, $visibility) {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'task_lists';
@@ -452,7 +437,6 @@ function fetch_lists() {
 
 function delete_list_and_associated_tasks($list_id) {
 	global $wpdb;
-    var_dump(123);
 	// Delete tasks associated with the list
 	$tasks_table = $wpdb->prefix . 'tasks';
 	$wpdb->delete($tasks_table, array('list_id' => $list_id));
@@ -481,3 +465,267 @@ function handle_list_deletion($list_id) {
 		return false; // Deletion failed
 	}
 }
+
+
+// Register custom REST API endpoint for fetching lists
+add_action('rest_api_init', function() {
+	register_rest_route('my-plugin/v1', '/lists', array(
+		'methods' => 'GET',
+		'callback' => 'get_lists',
+		'permission_callback' => function() {
+			return current_user_can('read'); // Check user's permissions
+		}
+	));
+});
+
+// Callback function to fetch lists
+function get_lists($request) {
+	$current_user_id = get_current_user_id();
+
+	// Query the database to fetch lists
+	$lists = get_posts(array(
+		'post_type' => 'task_list',
+		'post_status' => 'publish',
+		'meta_query' => array(
+			array(
+				'key' => 'visibility',
+				'value' => 'public',
+				'compare' => '='
+			),
+			array(
+				'key' => 'user_id',
+				'value' => $current_user_id,
+				'compare' => '='
+			)
+		)
+	));
+
+	// Process lists data
+	$formatted_lists = array();
+	foreach ($lists as $list) {
+		$formatted_lists[] = array(
+			'id' => $list->ID,
+			'name' => $list->post_title
+		);
+	}
+
+	return $formatted_lists;
+}
+
+// Register custom REST API endpoint for fetching tasks
+add_action('rest_api_init', function() {
+	register_rest_route('my-plugin/v1', '/tasks/(?P<list_id>\d+)', array(
+		'methods' => 'GET',
+		'callback' => 'get_tasks',
+		'permission_callback' => function() {
+			return current_user_can('read'); // Check user's permissions
+		}
+	));
+});
+
+// Callback function to fetch tasks associated with a list
+function get_tasks($request) {
+	$list_id = $request->get_param('list_id');
+	$current_user_id = get_current_user_id();
+
+	// Query the database to fetch tasks associated with the selected list
+	$tasks = get_posts(array(
+		'post_type' => 'task',
+		'post_status' => 'publish',
+		'meta_query' => array(
+			array(
+				'key' => 'list_id',
+				'value' => $list_id,
+				'compare' => '='
+			),
+			array(
+				'key' => 'user_id',
+				'value' => $current_user_id,
+				'compare' => '='
+			)
+		)
+	));
+
+	// Process tasks data
+	$formatted_tasks = array();
+	foreach ($tasks as $task) {
+		$formatted_tasks[] = array(
+			'id' => $task->ID,
+			'title' => $task->post_title,
+			'description' => $task->post_content
+			// Add more fields as needed
+		);
+	}
+
+	return $formatted_tasks;
+}
+
+//blocks
+
+function taskmaster_pro_enqueue_block_editor_assets() {
+	wp_enqueue_script(
+		'taskmaster-pro-select-list-block', // Handle.
+		plugins_url('/blocks/select-list-block.js', __FILE__), // Path to the JS file.
+		array('wp-blocks', 'wp-i18n', 'wp-element', 'wp-editor', 'wp-components', 'wp-data') // Dependencies.
+	);
+}
+add_action('enqueue_block_editor_assets', 'taskmaster_pro_enqueue_block_editor_assets');
+
+
+function taskmaster_pro_register_block() {
+	// Register the script from step 1
+	wp_register_script(
+		'taskmaster-pro-select-list-block',
+		plugins_url('/blocks/select-list-block.js', __FILE__),
+		array('wp-blocks', 'wp-element', 'wp-editor')
+	);
+
+	// Register your new block
+	register_block_type('taskmaster-pro/task-select-list', array(
+		'editor_script' => 'taskmaster-pro-select-list-block',
+		'render_callback' => 'taskmaster_pro_render_task_list', // PHP function to render the block on the frontend
+		'attributes' => array(
+			'selectedListId' => array(
+				'type' => 'number',
+				'default' => 0,
+			),
+		),
+	));
+}
+add_action('init', 'taskmaster_pro_register_block');
+
+function taskmaster_pro_render_task_list($attributes) {
+	global $wpdb;
+	$list_id = intval($attributes['selectedListId']);
+	$tasks_table = $wpdb->prefix . 'tasks';
+	$html = '';
+
+	if ($list_id > 0) {
+		$tasks = $wpdb->get_results($wpdb->prepare("SELECT title, description, completed FROM $tasks_table WHERE list_id = %d", $list_id));
+
+		// Initialize an HTML table with headers
+		$html = '<table class="taskmaster-pro-tasks-table" style="width: 100%; border-collapse: collapse;">';
+		$html .= '<thead>';
+		$html .= '<tr style="background-color: #f1f1f1;">';
+		$html .= '<th style="padding: 8px; border: 1px solid #ddd;">Title</th>';
+		$html .= '<th style="padding: 8px; border: 1px solid #ddd;">Description</th>';
+		$html .= '<th style="padding: 8px; border: 1px solid #ddd;">Status</th>';
+		$html .= '</tr>';
+		$html .= '</thead>';
+		$html .= '<tbody>';
+
+// Loop through each task and create a table row
+		foreach ($tasks as $task) {
+			$status = $task->completed ? 'Completed' : 'Pending';
+			$html .= '<tr>';
+			$html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($task->title) . '</td>';
+			$html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($task->description) . '</td>';
+			$html .= '<td style="padding: 8px; border: 1px solid #ddd;">' . esc_html($status) . '</td>';
+			$html .= '</tr>';
+		}
+
+// Close the table tags
+		$html .= '</tbody>';
+		$html .= '</table>';
+
+	}
+
+	return $html;
+}
+function register_task_list_post_type() {
+	$args = array(
+		'public' => true,
+		'label'  => __('Task Lists', 'taskmaster-pro'),
+		'show_in_rest' => true,
+		'supports' => array('title', 'editor', 'custom-fields'),
+	);
+	register_post_type('task_list', $args);
+}
+add_action('init', 'register_task_list_post_type');
+
+
+function register_custom_post_type() {
+	register_post_type('task_list', array(
+		'labels' => array('name' => __('Task Lists', 'textdomain'), 'singular_name' => __('Task List', 'textdomain')),
+		'public' => true,
+		'has_archive' => true,
+		'show_in_rest' => true,  // Important for Gutenberg compatibility
+	));
+}
+add_action('init', 'register_custom_post_type');
+
+
+function taskmaster_pro_register_rest_routes() {
+	register_rest_route('taskmaster-pro/v1', '/lists/', array(
+		'methods' => WP_REST_Server::READABLE,
+		'callback' => 'taskmaster_pro_get_task_lists',
+		'permission_callback' => '__return_true'  // Publicly accessible endpoint with filtering in callback
+	));
+
+	register_rest_route('taskmaster-pro/v1', '/tasks/', array(
+		'methods' => WP_REST_Server::READABLE,
+		'callback' => 'taskmaster_pro_get_tasks',
+		'permission_callback' => '__return_true'  // Publicly accessible endpoint with filtering in callback
+	));
+}
+add_action('rest_api_init', 'taskmaster_pro_register_rest_routes');
+
+function taskmaster_pro_get_task_lists(WP_REST_Request $request) {
+	global $wpdb;
+	$current_user = wp_get_current_user();
+
+	$sql = "SELECT * FROM {$wpdb->prefix}task_lists WHERE visibility = 'public'";
+	if (!current_user_can('administrator')) {
+		$sql .= $wpdb->prepare(" OR user_id = %d", $current_user->ID);
+	}
+	$sql .= " ORDER BY list_name";
+
+	$results = $wpdb->get_results($sql);
+	return rest_ensure_response($results);
+}
+
+function taskmaster_pro_get_tasks(WP_REST_Request $request) {
+	global $wpdb;
+	$current_user = wp_get_current_user();
+
+	$list_id = $request->get_param('list_id');
+	if (!empty($list_id)) {
+		$list_owner_query = $wpdb->prepare("SELECT user_id, visibility FROM {$wpdb->prefix}task_lists WHERE list_id = %d", $list_id);
+		$list_owner = $wpdb->get_row($list_owner_query);
+
+		if ($list_owner->visibility === 'public' || $list_owner->user_id === $current_user->ID || current_user_can('administrator')) {
+			$tasks = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}tasks WHERE list_id = %d ORDER BY created_at DESC", $list_id));
+			return rest_ensure_response($tasks);
+		} else {
+			return new WP_Error('rest_forbidden', esc_html__('You do not have permission to view these tasks.', 'taskmaster-pro'), array('status' => 403));
+		}
+	}
+
+	return new WP_Error('rest_not_found', esc_html__('List not found.', 'taskmaster-pro'), array('status' => 404));
+}
+
+function taskmaster_pro_render_tasks($attributes) {
+	global $wpdb;
+	if (empty($attributes['selectedListId'])) {
+		return 'Please select a list.';
+	}
+
+	$list_id = intval($attributes['selectedListId']);
+	$tasks = $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}tasks WHERE list_id = %d", $list_id));
+
+	if (empty($tasks)) {
+		return 'No tasks found.';
+	}
+
+	$output = '<ul>';
+	foreach ($tasks as $task) {
+		$output .= sprintf('<li>%s - %s</li>', esc_html($task->title), esc_html($task->description));
+	}
+	$output .= '</ul>';
+
+	return $output;
+}
+
+register_block_type('taskmaster-pro/task-list', array(
+	'render_callback' => 'taskmaster_pro_render_tasks',
+));

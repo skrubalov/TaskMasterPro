@@ -1,7 +1,6 @@
 <?php
 if (isset($_POST['delete_list'])) {
 	$list_id = intval($_POST['list_id']);
-	var_dump(12344);
 	if (handle_list_deletion($list_id)) {
 		// List deleted successfully
 		echo '<div class="notice notice-success"><p>List deleted successfully.</p></div>';

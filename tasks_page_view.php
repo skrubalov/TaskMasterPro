@@ -10,6 +10,7 @@
 	?>
 
 	<?php if (isset($edit_task)): ?>
+    <div class="task-form-container">
         <h2>Edit Task</h2>
         <form method="post">
             <input type="hidden" name="id" value="<?= esc_attr($edit_task->id); ?>">
@@ -23,21 +24,24 @@
                     </option>
 				<?php endforeach; ?>
             </select>
-            <button type="submit" name="edittask">Update Task</button>
+            <br><button type="submit" name="edittask">Update Task</button>
         </form>
+        </div>
 	<?php else: ?>
+    <div class="task-form-container">
         <form method="post" action="<?= admin_url('admin-post.php'); ?>">
             <input type="hidden" name="action" value="add_new_task">
             <input type="text" name="title" placeholder="Title">
             <textarea name="description" placeholder="Description"></textarea>
+            <label for="list_id">Project</label>
             <select name="list_id">
 				<?php foreach ($lists as $list): ?>
                     <option value="<?= esc_attr($list->list_id); ?>"><?= esc_html($list->list_name); ?></option>
 				<?php endforeach; ?>
             </select>
-            <button type="submit" name="newtask">Add Task</button>
+           <br> <button type="submit" name="newtask">Add Task</button>
         </form>
-
+    </div>
 	<?php endif; ?>
 
 

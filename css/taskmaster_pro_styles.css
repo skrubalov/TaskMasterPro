@@ -45,3 +45,39 @@
 .delete-list-button:hover {
     color: #005e80; /* Adjust the hover color if needed */
 }
+
+/* Style the form container */
+.task-form-container {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Style form inputs */
+.task-form-container input[type="text"],
+.task-form-container textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Style the submit button */
+.task-form-container button[type="submit"] {
+    background-color: #0073aa;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-top: 20px;
+}
+
+.task-form-container button[type="submit"]:hover {
+    background-color: #005e80;
+}
+
